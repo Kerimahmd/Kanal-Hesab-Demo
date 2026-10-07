@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kablo Kanalı Hesabı</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f5f7;--card:#fff;--tx:#14181f;--mut:#667085;--bd:#e2e5ea;--ac:#0a66d6;
+--xlpe:#d93a2f;--k240:#2b2f36;--k16:#7a8494;--b7:#c9ccd1;--b14:#9aa0a8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111317;--card:#1b1e24;--tx:#eef0f3;--mut:#9aa3b2;--bd:#2c313a;--ac:#4c9aff;--k240:#8b93a1;--k16:#c0c6d0;--b7:#5a6068;--b14:#80868f}}
+:root[data-theme="dark"]{--bg:#111317;--card:#1b1e24;--tx:#eef0f3;--mut:#9aa3b2;--bd:#2c313a;--ac:#4c9aff;--k240:#8b93a1;--k16:#c0c6d0;--b7:#5a6068;--b14:#80868f}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,system-ui,Segoe UI,Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin:0 0 10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0}
+.row+.row{border-top:1px solid var(--bd)}
+.row label{flex:1}
+.row small{display:block;color:var(--mut);font-size:12px}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:20px}
+input[type=number]{width:72px;height:36px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px;text-align:center}
+.res{background:var(--ac);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px}
+.res .big{font-size:34px;font-weight:700}
+.res .sub{opacity:.9;font-size:14px}
+.line{display:flex;justify-content:space-between;padding:6px 0}
+.line+.line{border-top:1px solid var(--bd)}
+.diag{overflow-x:auto}
+.bar{display:flex;height:46px;min-width:560px;border-radius:6px;overflow:hidden;border:1px solid var(--bd)}
+.bar div{height:100%}
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--mut)}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.seq{font-size:12px;color:var(--mut);margin-top:10px;word-break:break-word}
+</style>
+</head>
+<body>
+<main>
+<h1>Kablo Kanalı Hesabı</h1>
+
+<div class="card">
+<h2>Kablolar</h2>
+<div class="row"><label>XLPE devre sayısı<small>1 devre = 3 adet 1x150</small></label><div class="step"><button data-t="dev" data-d="-1">−</button><input id="dev" type="number" value="1" min="0"><button data-t="dev" data-d="1">+</button></div></div>
+<div class="row"><label>3x240 kablo adedi</label><div class="step"><button data-t="n240" data-d="-1">−</button><input id="n240" type="number" value="3" min="0"><button data-t="n240" data-d="1">+</button></div></div>
+<div class="row"><label>4x16 kablo adedi</label><div class="step"><button data-t="n16" data-d="-1">−</button><input id="n16" type="number" value="2" min="0"><button data-t="n16" data-d="1">+</button></div></div>
+</div>
+
+<div class="res">
+<div class="sub">Kanal genişliği</div>
+<div class="big" id="total">–</div>
+<div class="sub" id="sum"></div>
+</div>
+
+<div class="card">
+<h2>Detay</h2>
+<div class="line"><span>Kablo adedi</span><b id="rN"></b></div>
+<div class="line"><span>Kablo toplamı</span><b id="rC"></b></div>
+<div class="line"><span id="rBl">Tuğla</span><b id="rB"></b></div>
+<div class="line"><span>Kenar boşlukları</span><b id="rM"></b></div>
+</div>
+
+<div class="card">
+<h2>Diziliş</h2>
+<div class="diag"><div class="bar" id="bar"></div></div>
+<div class="leg">
+<span><i style="background:var(--xlpe)"></i>XLPE</span><span><i style="background:var(--k240)"></i>3x240</span><span><i style="background:var(--k16)"></i>4x16</span><span><i style="background:var(--b7)"></i>Tuğla 7</span><span><i style="background:var(--b14)"></i>Ayırıcı 14</span>
+</div>
+<div class="seq" id="seq"></div>
+</div>
+
+<div class="card">
+<h2>Ayarlar (cm)</h2>
+<div class="row"><label>XLPE 1x150 çapı</label><input id="d1" type="number" step="0.1" value="4.5"></div>
+<div class="row"><label>3x240 çapı</label><input id="d2" type="number" step="0.1" value="6"></div>
+<div class="row"><label>4x16 çapı</label><input id="d3" type="number" step="0.1" value="2.2"></div>
+<div class="row"><label>Tuğla (kablo arası)</label><input id="b1" type="number" step="0.1" value="7"></div>
+<div class="row"><label>Devre ayırıcı tuğla</label><input id="b2" type="number" step="0.1" value="14"></div>
+<div class="row"><label>Kenar boşluğu<small>her yan için</small></label><input id="mg" type="number" step="0.1" value="0"></div>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const v=id=>Math.max(0,parseFloat($(id).value)||0);
+const f=n=>(Math.round(n*100)/100).toString().replace('.',',');
+function calc(){
+  const dev=Math.floor(v('dev')),a=Math.floor(v('n240')),b=Math.floor(v('n16'));
+  const d={x:v('d1'),a:v('d2'),b:v('d3')},b1=v('b1'),b2=v('b2'),mg=v('mg');
+  const cs=[];
+  for(let i=0;i<dev*3;i++)cs.push({t:'x',w:d.x,last:i%3===2});
+  for(let i=0;i<a;i++)cs.push({t:'a',w:d.a});
+  for(let i=0;i<b;i++)cs.push({t:'b',w:d.b});
+  const N=cs.length;
+  if(!N){$('total').textContent='–';$('bar').innerHTML='';$('seq').textContent='';return;}
+  const parts=[{t:'s',w:b1}];let S=0;
+  cs.forEach((c,i)=>{
+    parts.push(c);
+    const sep=c.last&&i<N-1;
+    if(sep)S++;
+    parts.push({t:sep?'g':'s',w:sep?b2:b1});
+  });
+  const cab=cs.reduce((s,c)=>s+c.w,0);
+  const brk=parts.filter(p=>p.t==='s'||p.t==='g').reduce((s,p)=>s+p.w,0);
+  const tot=cab+brk+2*mg;
+  $('total').textContent=f(tot)+' cm';
+  $('sum').textContent=f(cab)+' + '+f(brk)+(mg?' + '+f(2*mg):'')+' cm';
+  $('rN').textContent=N;
+  $('rC').textContent=f(cab)+' cm';
+  const n7=parts.filter(p=>p.t==='s').length;
+  $('rBl').textContent='Tuğla ('+n7+'×'+f(b1)+' + '+S+'×'+f(b2)+')';
+  $('rB').textContent=f(brk)+' cm';
+  $('rM').textContent=f(2*mg)+' cm';
+  const col={x:'--xlpe',a:'--k240',b:'--k16',s:'--b7',g:'--b14'};
+  $('bar').innerHTML=parts.map(p=>'<div style="flex:'+p.w+' 0 0;background:var('+col[p.t]+');'+(p.t==='s'||p.t==='g'?'':'border-radius:3px')+'"></div>').join('');
+  $('seq').textContent=parts.map(p=>({x:'XLPE',a:'3x240',b:'4x16'}[p.t]||f(p.w))).join(' | ');
+}
+document.querySelectorAll('input').forEach(e=>e.addEventListener('input',calc));
+document.querySelectorAll('.step button').forEach(btn=>btn.addEventListener('click',()=>{
+  const el=$(btn.dataset.t);el.value=Math.max(0,(parseInt(el.value)||0)+parseInt(btn.dataset.d));calc();
+}));
+calc();
+</script>
+</body>
+</html>
