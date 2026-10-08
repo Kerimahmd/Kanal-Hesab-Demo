@@ -68,12 +68,12 @@ select{height:36px;border-radius:10px;border:1px solid var(--bd);background:var(
 
 <div class="card noprint">
 <h2>Kablolar</h2>
-<div class="row"><label>Kat düzeni<small>İki katta: XLPE devreleri (OG) altta, diğer kablolar (AG) üstte</small></label><select id="kat"><option value="1">Tek kat</option><option value="2">İki kat</option></select></div>
+<div class="row"><label>Kat düzeni<small>Çift katta: XLPE devreleri (OG) altta, diğer kablolar ve aboneler (AG) üstte</small></label><select id="kat"><option value="1">Tek kat</option><option value="2">Çift kat</option></select></div>
 <div id="cables"></div>
 <div class="row" id="addhead" style="cursor:pointer"><label>Kendi kablonu ekle</label><b id="addarr">▾</b></div>
 <div id="addpanel" hidden>
 <div class="row"><label>Kablo adı</label><input type="text" id="cn" placeholder="Örn. 3x120" style="width:150px"></div>
-<div class="row"><label>Dış çap (cm)</label><input type="number" id="cd" step="0.1"></div>
+<div class="row"><label>Dış çap (cm)</label><input type="number" id="cd" step="0.1" value="5"></div>
 <div class="row"><label>Tip</label><select id="ct"><option value="0">Çok damarlı (tek tek)</option><option value="1">Tek damar (3'lü devre)</option></select></div>
 <div class="row"><button class="btn p" id="cadd">Listeye ekle</button></div>
 </div>
@@ -103,15 +103,9 @@ select{height:36px;border-radius:10px;border:1px solid var(--bd);background:var(
 <h2>Diziliş</h2>
 <div class="diag"><div id="bar"></div></div>
 <div class="leg">
-<span><i style="background:var(--cx)"></i>Devre kabloları (tek damar)</span><span><i style="background:var(--cm)"></i>Çok damarlı</span><span><i style="background:var(--b7)"></i>Takoz</span><span><i style="background:var(--b14)"></i>Devre ayırıcı</span>
+<span><i style="background:var(--cx)"></i>Devre kabloları (tek damar)</span><span><i style="background:var(--cm)"></i>Çok damarlı</span><span><i style="background:var(--b7)"></i>Takoz</span><span><i style="background:var(--b14)"></i>Devre ayırıcı</span><span><i style="background:var(--ac)"></i>Abone</span>
 </div>
 <div class="seq" id="seq"></div>
-</div>
-
-<div class="card">
-<h2>Malzeme listesi</h2>
-<div class="row noprint"><label>Kanal uzunluğu</label><span><input id="len" type="number" step="1" value="100"> m</span></div>
-<div id="mat"></div>
 </div>
 
 <div class="card noprint">
@@ -134,11 +128,8 @@ select{height:36px;border-radius:10px;border:1px solid var(--bd);background:var(
 <div id="diam"></div>
 <div class="row"><label>Takoz (kablo arası)</label><input id="b1" type="number" step="0.1" value="7"></div>
 <div class="row"><label>Devre ayırıcı</label><input id="b2" type="number" step="0.1" value="14"></div>
-<div class="row"><label>Takoz aralığı (m)<small>kanal boyunca takozlar arası</small></label><input id="ta" type="number" step="0.1" value="2"></div>
-<div class="row"><label>Takoz boyu (cm)<small>kanal boyunca takozun uzunluğu</small></label><input id="tl" type="number" step="1" value="14"></div>
-<div class="row"><label>Aralık ölçüsü<small>2 m nasıl sayılıyor</small></label><select id="tm"><option value="0">Takozlar arası boşluk</option><option value="1">Takoz başından takoz başına</option></select></div>
-<div class="row"><label>Ayırıcı bims boyu (cm)<small>devre ayırıcı kanal boyunca dizilir</small></label><input id="bl" type="number" step="1" value="20"></div>
-<div class="row"><label>Kanal derinliği (cm)<small>iki katlı kanalda gösterilir</small></label><input id="dp" type="number" step="1" value="130"></div>
+<div class="row"><label>Abone başına genişlik (cm)<small>her abone genişliğe eklenir</small></label><input id="abw" type="number" step="1" value="10"></div>
+<div class="row"><label>Kanal derinliği (cm)<small>çift katlı kanalda gösterilir</small></label><input id="dp" type="number" step="1" value="130"></div>
 <div class="row"><label>Kenar boşluğu<small>her yan için</small></label><input id="mg" type="number" step="0.1" value="0"></div>
 </div>
 </div>
@@ -150,19 +141,14 @@ const v=id=>Math.max(0,parseFloat($(id).value)||0);
 const f=n=>(Math.round(n*100)/100).toString().replace('.',',');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CAT=[
-{id:'x150',n:'1x150 XLPE kablo',d:4.5,c:1},
-{id:'x240',n:'1x240 XLPE kablo',d:4.7,c:1},
-{id:'x400',n:'1x400 XLPE kablo',d:5.2,c:1},
-{id:'k240',n:'3x240 kablo',d:6,c:0},
-{id:'k95',n:'3x95 kablo',d:4,c:0,ab:1},
-{id:'k75',n:'3x75 kablo',d:3.3,c:0,ab:1},
-{id:'k50',n:'3x50 kablo',d:3.2,c:0,ab:1},
-{id:'k35',n:'3x35 kablo',d:2.5,c:0,ab:1},
-{id:'k25',n:'3x25 kablo',d:2.3,c:0,ab:1},
-{id:'k16',n:'4x16 kablo',d:2.2,c:0}];
+{id:'x150',n:'1x150 XLPE kablo',d:5,c:1},
+{id:'x240',n:'1x240 XLPE kablo',d:5,c:1},
+{id:'x400',n:'1x400 XLPE kablo',d:5,c:1},
+{id:'k240',n:'3x240 kablo',d:5,c:0},
+{id:'k16',n:'4x16 kablo',d:5,c:0}];
 let cnt={x150:1,k240:3,k16:2},pname='';
 const OK='kanal-ozel',OR='kanal-sira';
-const KEY='kanal-kayitlar',DK='kanal-ayarlar';
+const KEY='kanal-kayitlar',DK='kanal-ayarlar2';
 function ld(k,def){try{const r=localStorage.getItem(k);return r?JSON.parse(r):def}catch(e){return def}}
 function sv(k,x){try{localStorage.setItem(k,JSON.stringify(x))}catch(e){}}
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800)}
@@ -175,12 +161,11 @@ const OL=()=>ord.map(id=>CAT.find(c=>c.id===id)).filter(Boolean);
 const dset=ld(DK,{});CAT.forEach(c=>{if(typeof dset[c.id]==='number')c.d=dset[c.id]});
 const rowH=c=>'<div class="row"><label>'+esc(c.n)+'<small>'+(c.c?'devre sayısı (1 devre = 3 kablo)':'kablo adedi')+' · çap <span data-cd="'+c.id+'">'+f(c.d)+'</span> cm</small></label><div class="step"><button data-id="'+c.id+'" data-s="-1">−</button><input type="number" data-n="'+c.id+'" value="0" min="0"><button data-id="'+c.id+'" data-s="1">+</button></div>'+(c.cu?'<button class="x" data-del="'+c.id+'" title="Kabloyu sil">×</button>':'')+'</div>';
 function renderAll(){
-  const ao=$('abpanel')&&!$('abpanel').hidden;
   $('diam').innerHTML=CAT.map(c=>'<div class="row"><label>'+esc(c.n)+' çapı</label><input type="number" step="0.1" data-d="'+c.id+'" value="'+c.d+'"></div>').join('');
-  $('cables').innerHTML=CAT.filter(c=>!c.ab).map(rowH).join('')+'<div class="row" id="abhead" style="cursor:pointer"><label>Abone kabloları<small id="absum">Seçilmedi · dokunup kablo ve adet seç</small></label><b id="abarr">'+(ao?'▴':'▾')+'</b></div><div id="abpanel"'+(ao?'':' hidden')+'>'+CAT.filter(c=>c.ab).map(rowH).join('')+'</div>';
+  $('cables').innerHTML=CAT.map(rowH).join('')+'<div class="row"><label>Abone sayısı<small>her abone genişliğe '+f(v('abw'))+' cm ekler</small></label><div class="step"><button data-id="abone" data-s="-1">−</button><input type="number" data-n="abone" value="0" min="0"><button data-id="abone" data-s="1">+</button></div></div>';
   setInputs();calc();
 }
-function setInputs(){CAT.forEach(c=>{const e=document.querySelector('[data-n="'+c.id+'"]');if(e)e.value=cnt[c.id]||0})}
+function setInputs(){const ea=document.querySelector('[data-n="abone"]');if(ea)ea.value=cnt.abone||0;CAT.forEach(c=>{const e=document.querySelector('[data-n="'+c.id+'"]');if(e)e.value=cnt[c.id]||0})}
 function renderOrd(){
   const vis=OL().filter(c=>cnt[c.id]>0);
   $('ordsum').textContent=vis.length?vis.map(c=>c.n).join(' → '):'Önce kablo seç';
@@ -188,11 +173,9 @@ function renderOrd(){
 }
 
 let R=null;
-function abSum(){const p=CAT.filter(c=>c.ab&&cnt[c.id]).map(c=>cnt[c.id]+' × '+c.n),n=CAT.filter(c=>c.ab).reduce((a,c)=>a+(cnt[c.id]||0),0);$('absum').textContent=p.length?n+' abone: '+p.join(', '):'Seçilmedi · dokunup kablo ve adet seç'}
-function tkN(){const L=v('len')*100,g=(v('ta')||2)*100,t=v('tl')||14;return $('tm').value==='1'?Math.floor(L/g)+1:Math.max(1,Math.floor((L+g)/(t+g)))}
-function lay(cs,b1,b2){const N=cs.length,parts=[{t:'s',w:b1}];let S=0;cs.forEach((x,i)=>{parts.push(x);const sep=x.last&&i<N-1;if(sep)S++;parts.push({t:sep?'g':'s',w:sep?b2:b1})});const cab=cs.reduce((a,c)=>a+c.w,0),brk=parts.filter(p=>!p.c).reduce((a,p)=>a+p.w,0);return{cs,parts,N,S,n7:parts.filter(p=>p.t==='s').length,cab,brk,w:cab+brk}}
+function lay(cs,b1,b2){const N=cs.length,parts=N?[{t:'s',w:b1}]:[];let S=0;cs.forEach((x,i)=>{parts.push(x);const sep=x.last&&i<N-1;if(sep)S++;parts.push({t:sep?'g':'s',w:sep?b2:b1})});const cab=cs.reduce((a,c)=>a+c.w,0),brk=parts.filter(p=>!p.c).reduce((a,p)=>a+p.w,0);return{cs,parts,N,S,n7:parts.filter(p=>p.t==='s').length,cab,brk,w:cab+brk}}
 function calc(){
-  abSum();renderOrd();
+  renderOrd();
   const b1=v('b1'),b2=v('b2'),mg=v('mg'),cs=[];
   OL().forEach(c=>{
     const n=Math.floor(cnt[c.id]||0);
@@ -200,43 +183,33 @@ function calc(){
     else for(let i=0;i<n;i++)cs.push({c,w:c.d,last:false});
   });
   const N=cs.length;
-  if(!N){R=null;['total','sum','rN','rC','rB','rM','mat','seq','rLv'].forEach(i=>$(i).textContent='');$('total').textContent='–';$('bar').innerHTML='';$('rBl').textContent='Takoz + ayırıcı';return}
-  const two=$('kat').value==='2';
-  const grp=two?[{n:'Alt kat (OG)',cs:cs.filter(x=>x.c.c)},{n:'Üst kat (AG)',cs:cs.filter(x=>!x.c.c)}].filter(g=>g.cs.length):[{n:'',cs}];
-  const lv=grp.map(g=>({n:g.n,...lay(g.cs,b1,b2)}));
+  if(!N){R=null;['total','sum','rN','rC','rB','rM','seq','rLv'].forEach(i=>$(i).textContent='');$('total').textContent='–';$('bar').innerHTML='';$('rBl').textContent='Takoz + ayırıcı';return}
+  const abn=Math.floor(cnt.abone||0),abW=abn*v('abw'),two=$('kat').value==='2';
+  const grp=two?[{n:'Alt kat (OG)',cs:cs.filter(x=>x.c.c)},{n:'Üst kat (AG)',cs:cs.filter(x=>!x.c.c)}].filter(g=>g.cs.length||(g.n[0]==='Ü'&&abn)):[{n:'',cs}];
+  const lv=grp.map(g=>{const o=lay(g.cs,b1,b2),ab=(!two||g.n[0]==='Ü')?abW:0;return{n:g.n,...o,ab,w:o.w+ab}});
   const sm=k=>lv.reduce((a,l)=>a+l[k],0),cab=sm('cab'),brk=sm('brk'),n7=sm('n7'),S=sm('S'),W=Math.max(...lv.map(l=>l.w)),tot=W+2*mg;
-  R={cs,lv,N,S,n7,cab,brk,mg,tot,b1,b2};
+  R={cs,lv,N,S,n7,cab,brk,mg,tot,b1,b2,abn,abW};
   const multi=lv.length>1;
   $('total').textContent=f(tot)+' cm';
-  $('sum').textContent=multi?lv.map(l=>l.n+' '+f(l.w)).join(' · ')+(mg?' + '+f(2*mg):'')+' cm (geniş olan esas)':f(cab)+' + '+f(brk)+(mg?' + '+f(2*mg):'')+' cm';
+  $('sum').textContent=multi?lv.map(l=>l.n+' '+f(l.w)).join(' · ')+(mg?' + '+f(2*mg):'')+' cm (geniş olan esas)':f(cab)+' + '+f(brk)+(abW?' + '+f(abW):'')+(mg?' + '+f(2*mg):'')+' cm';
   $('rN').textContent=N;$('rC').textContent=f(cab)+' cm';
   $('rBl').textContent='Takoz + ayırıcı ('+n7+'×'+f(b1)+' + '+S+'×'+f(b2)+')';
   $('rB').textContent=f(brk)+' cm';$('rM').textContent=f(2*mg)+' cm';
-  $('rLv').innerHTML=multi?lv.map(l=>'<div class="line"><span>'+l.n+'</span><b>'+f(l.cab)+' + '+f(l.brk)+' = '+f(l.w)+' cm</b></div>').join('')+'<div class="line"><span>Kanal derinliği</span><b>'+f(v('dp'))+' cm</b></div>':'';
+  const abL=abn?'<div class="line"><span>Abone ('+abn+' × '+f(v('abw'))+' cm)</span><b>'+f(abW)+' cm</b></div>':'';
+  $('rLv').innerHTML=(multi?lv.map(l=>'<div class="line"><span>'+l.n+'</span><b>'+f(l.cab)+' + '+f(l.brk)+(l.ab?' + '+f(l.ab):'')+' = '+f(l.w)+' cm</b></div>').join(''):'')+abL+(multi?'<div class="line"><span>Kanal derinliği</span><b>'+f(v('dp'))+' cm</b></div>':'');
   const col=p=>p.c?(p.c.c?'--cx':'--cm'):(p.t==='g'?'--b14':'--b7');
-  $('bar').innerHTML=lv.slice().reverse().map(l=>(multi?'<div class="lvl">'+l.n+' · '+f(l.w)+' cm</div>':'')+'<div class="bar" style="width:'+(l.w/W*100)+'%">'+l.parts.map(p=>'<div style="flex:'+p.w+' 0 0;background:var('+col(p)+')"></div>').join('')+'</div>').join('');
-  $('seq').textContent=lv.slice().reverse().map(l=>(multi?l.n+': ':'')+l.parts.map(p=>p.c?p.c.n:f(p.w)).join(' | ')).join('\n');
-  // malzeme
-  const L=v('len'),tk=tkN(),per=Math.ceil(L*100/(v('bl')||20));
-  let h='';
-  OL().forEach(c=>{const k=cs.filter(x=>x.c===c).length;if(k)h+='<div class="line"><span>'+esc(c.n)+'</span><b>'+k+' × '+f(L)+' m = '+f(k*L)+' m</b></div>'});
-  h+='<div class="line"><span>Takoz '+f(b1)+'×'+f(v('tl')||14)+' cm (aralık '+f(v('ta')||2)+' m)</span><b>'+n7+' sıra × '+tk+' = '+(n7*tk)+' adet</b></div>';
-  if(S)h+='<div class="line"><span>Devre ayırıcı bims '+f(b2)+' cm (boydan boya)</span><b>'+S+' hat × '+per+' = '+(S*per)+' adet</b></div>';
-  $('mat').innerHTML=h;
+  $('bar').innerHTML=lv.slice().reverse().map(l=>(multi?'<div class="lvl">'+l.n+' · '+f(l.w)+' cm</div>':'')+'<div class="bar" style="width:'+(l.w/W*100)+'%">'+l.parts.map(p=>'<div style="flex:'+p.w+' 0 0;background:var('+col(p)+')"></div>').join('')+(l.ab?'<div style="flex:'+l.ab+' 0 0;background:var(--ac)"></div>':'')+'</div>').join('');
+  $('seq').textContent=lv.slice().reverse().map(l=>(multi?l.n+': ':'')+l.parts.map(p=>p.c?p.c.n:f(p.w)).join(' | ')+(l.ab?' | Abone ('+abn+'×'+f(v('abw'))+')':'')).join('\n');
 }
 function summary(){
   if(!R)return '';
-  const L=v('len'),tk=tkN(),per=Math.ceil(L*100/(v('bl')||20));
   let t='Kablo Kanalı Hesabı'+(pname?' - '+pname:'')+'\n';
   OL().forEach(c=>{const n=cnt[c.id]||0;if(n)t+='• '+c.n+': '+n+(c.c?' devre':' adet')+'\n'});
   t+='\nKanal genişliği: '+f(R.tot)+' cm\n';
-  if(R.lv.length>1){R.lv.forEach(l=>{t+=l.n+': kablo '+f(l.cab)+' + takoz/ayırıcı '+f(l.brk)+' = '+f(l.w)+' cm\n'});t+='Kanal derinliği: '+f(v('dp'))+' cm\n'}
+  if(R.abn)t+='Abone: '+R.abn+' adet × '+f(v('abw'))+' cm = '+f(R.abW)+' cm\n';
+  if(R.lv.length>1){R.lv.forEach(l=>{t+=l.n+': kablo '+f(l.cab)+' + takoz/ayırıcı '+f(l.brk)+(l.ab?' + abone '+f(l.ab):'')+' = '+f(l.w)+' cm\n'});t+='Kanal derinliği: '+f(v('dp'))+' cm\n'}
   else t+='Kablo: '+f(R.cab)+' cm\nTakoz + ayırıcı: '+f(R.brk)+' cm ('+R.n7+'×'+f(R.b1)+' + '+R.S+'×'+f(R.b2)+')\n';
   if(R.mg)t+='Kenar boşluğu: '+f(2*R.mg)+' cm\n';
-  t+='\nMalzeme ('+f(L)+' m kanal):\n';
-  OL().forEach(c=>{const k=R.cs.filter(x=>x.c===c).length;if(k)t+='• '+c.n+': '+f(k*L)+' m\n'});
-  t+='• Takoz '+f(R.b1)+'×'+f(v('tl')||14)+' cm (aralık '+f(v('ta')||2)+' m): '+(R.n7*tk)+' adet\n';
-  if(R.S)t+='• Devre ayırıcı bims '+f(R.b2)+' cm (boydan boya): '+(R.S*per)+' adet\n';
   return t;
 }
 function renderSaved(){
@@ -250,9 +223,8 @@ document.addEventListener('click',e=>{
   if(t.closest('#addhead')){const q=$('addpanel');q.hidden=!q.hidden;$('addarr').textContent=q.hidden?'▾':'▴'}
   if(t.dataset.mv){const id=t.dataset.mv,dir=parseInt(t.dataset.dir),vis=OL().filter(c=>cnt[c.id]>0).map(c=>c.id),k=vis.indexOf(id),j=k+dir;if(j>=0&&j<vis.length){const a=ord.indexOf(vis[k]),b=ord.indexOf(vis[j]);[ord[a],ord[b]]=[ord[b],ord[a]];sv(OR,ord);calc()}}
   if(t.dataset.del){const id=t.dataset.del;sv(OK,ld(OK,[]).filter(o=>o.id!==id));const i=CAT.findIndex(c=>c.id===id);if(i>=0)CAT.splice(i,1);ord=ord.filter(x=>x!==id);sv(OR,ord);delete cnt[id];renderAll();toast('Kablo silindi')}
-  if(t.closest('#abhead')){const q=$('abpanel');q.hidden=!q.hidden;$('abarr').textContent=q.hidden?'▾':'▴'}
   if(t.dataset.s){const id=t.dataset.id;cnt[id]=Math.max(0,(cnt[id]||0)+parseInt(t.dataset.s));setInputs();calc()}
-  if(t.dataset.o!==undefined){const s=ld(KEY,[])[t.dataset.o];if(s){cnt=s.cnt||{};$('kat').value=s.kat||'1';if(s.ord){const o=s.ord.filter(id=>CAT.some(c=>c.id===id));CAT.forEach(c=>{if(!o.includes(c.id))o.push(c.id)});ord=o;sv(OR,ord)}$('len').value=s.len;$('mg').value=s.mg;pname=s.name;$('sname').value=s.name;$('pname').textContent=s.name;setInputs();calc();window.scrollTo(0,0)}}
+  if(t.dataset.o!==undefined){const s=ld(KEY,[])[t.dataset.o];if(s){cnt=s.cnt||{};$('kat').value=s.kat||'1';if(s.ord){const o=s.ord.filter(id=>CAT.some(c=>c.id===id));CAT.forEach(c=>{if(!o.includes(c.id))o.push(c.id)});ord=o;sv(OR,ord)}$('mg').value=s.mg;pname=s.name;$('sname').value=s.name;$('pname').textContent=s.name;setInputs();calc();window.scrollTo(0,0)}}
   if(t.dataset.x!==undefined){const a=ld(KEY,[]);a.splice(t.dataset.x,1);sv(KEY,a);renderSaved()}
 });
 document.addEventListener('input',e=>{
@@ -266,7 +238,7 @@ $('save').onclick=()=>{
   if(!R){toast('Önce kablo ekle');return}
   const name=$('sname').value.trim()||('Hesap '+new Date().toLocaleDateString('tr-TR'));
   const a=ld(KEY,[]);
-  a.unshift({name,kat:$('kat').value,cnt:{...cnt},ord:[...ord],len:v('len'),mg:v('mg'),info:f(R.tot)+' cm · '+R.N+' kablo'});
+  a.unshift({name,kat:$('kat').value,cnt:{...cnt},ord:[...ord],mg:v('mg'),info:f(R.tot)+' cm · '+R.N+' kablo'});
   sv(KEY,a);pname=name;$('pname').textContent=name;renderSaved();toast('Kaydedildi');
 };
 $('share').onclick=async()=>{
@@ -275,13 +247,13 @@ $('share').onclick=async()=>{
   try{await navigator.clipboard.writeText(t);toast('Kopyalandı')}catch(e){prompt('Kopyala:',t)}
 };
 $('print').onclick=()=>window.print();
-$('kat').onchange=calc;$('tm').onchange=calc;
+$('kat').onchange=calc;
 $('cadd').onclick=()=>{
   const n=$('cn').value.trim(),d=parseFloat(String($('cd').value).replace(',','.'));
   if(!n||!(d>0)){toast('Ad ve çap gir');return}
   const o={id:'u'+Date.now(),n,d,c:$('ct').value==='1'?1:0};
   const a=ld(OK,[]);a.push(o);sv(OK,a);CAT.push({...o,n:kn(o.n),cu:1});ord.push(o.id);sv(OR,ord);
-  $('cn').value='';$('cd').value='';renderAll();toast('Kablo eklendi');
+  $('cn').value='';$('cd').value='5';renderAll();toast('Kablo eklendi');
 };
 $('reset').onclick=()=>{cnt={};pname='';$('sname').value='';$('pname').textContent='Kanal genişliği';renderAll();window.scrollTo(0,0);toast('Sıfırlandı')};
 renderAll();renderSaved();
